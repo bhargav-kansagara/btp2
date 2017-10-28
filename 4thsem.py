@@ -5,7 +5,6 @@ import matplotlib.path as mpltPath
 import xml.etree.cElementTree as ET
 import urllib
 from PIL import Image
-#import pytesseract
 import sys
 print(sys.argv)
 import matplotlib.pyplot as plt
