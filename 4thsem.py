@@ -43,39 +43,43 @@ def DiffLines(lines=[[]]):
 	return diffLines
 
 def findlines(image,mul):
-        thresh=image
-        length = int(thresh.shape[0]/mul)
-        width = int(thresh.shape[1]/mul)
-        print(thresh.shape)
-        #show(thresh,"thresh")
-        for i in range (0,length):
-                for j in range (0,width):
-                        temp = []
-                        for i1 in range (mul*i,mul*(i+1)):
-                                temp1= []
-                                for j1 in range (mul*j,mul*(j+1)):
-                                        #print(i1,j1)
-                                        temp1.append(thresh[i1][j1])
-                                temp.append(temp1)
-                        temp=np.array(temp)	
-                        #print(temp)
-                        img=temp.copy()
-                        _,contours,h1 = cv2.findContours(temp,1,2)
-                        #print(len(contours))
-                        # print(contours)
-                        # if (len(contours)>0):
-                                #cv2.imshow("temp",img)
-                                #cv2.waitKey(0)
-                        if (len(contours)>1):
-                                #print(img)
-                                for i1 in range (mul*i,mul*(i+1)):
-                                        for j1 in range (mul*j,mul*(j+1)):
-                                                thresh[i1][j1]=0
-        #show(thresh,"thresh")
-        return thresh
+    
+	thresh=image
+	length = int(thresh.shape[0]/mul)
+	width = int(thresh.shape[1]/mul)
+	#print(thresh.shape)
+	#show(thresh,"thresh")
+	x=10
+	i=0
+	j=0
+	while (i+mul<thresh.shape[0]):
+		j=0
+		while (j+mul<thresh.shape[1]):
+			#print(i,j)
+			temp = []
+			for i1 in range (i,i+mul):
+				temp1= []
+				for j1 in range (j,j+mul):
+                                                    
+					#print(i1,j1)
+					temp1.append(thresh[i1][j1])
+				temp.append(temp1)
+			temp=np.array(temp)
+			#print(temp)
+			img=temp.copy()
+			_,contours,h1 = cv2.findContours(temp,1,2)
+			
+			if (len(contours)>1):
+				#print(img)
+				for i1 in range (i,i+mul):
+					for j1 in range (j,j+mul):
+						thresh[i1][j1]=0
+			j+=x
+		i+=x
+	return thresh
 
 
-file = "36.png"
+file = "full/1.png"
 print(file)
 i = cv2.imread(file,0)
 show(i)
@@ -90,7 +94,7 @@ lines=[[[]]]
 #ret,thresh = cv2.threshold(img1,200,255,1) 
 #cv2.imshow("ther",thresh)
 #cv2.waitKey(0)
-img=thresh
+img=thresh.copy()
 
 element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
 done = False
@@ -106,7 +110,7 @@ while(done==0):
 	if zeros==size:
 		done = True
 
-thresh=skel
+#thresh=skel
 #show(skel)
 ret,thresh = cv2.threshold(thresh,100,255,0)
 
@@ -116,16 +120,16 @@ show(thresh,"thresh")
 ##cv2.waitKey(0)
 thresh1=thresh.copy()
 final=thresh.copy()
-img1=findlines(thresh,50)
-img2=findlines(thresh1,100)
+img1=findlines(thresh,40)
+img2=findlines(thresh1,20)
 show(img1,"img1")
 show(img2,"img2")
 for i in range (0,img1.shape[0]):
-        for j in range (0,img1.shape[1]):
-                if (img1[i][j]==0 or img2[i][j]==0):
-                        final[i][j]=0
-                else:
-                        final[i][j]=255
+	for j in range (0,img1.shape[1]):
+		if (img1[i][j]==0 or img2[i][j]==0):
+			final[i][j]=0
+		else:
+			final[i][j]=255
 show(final,name="final")
 #show(img1,name="img1")	
 #show(thresh)
