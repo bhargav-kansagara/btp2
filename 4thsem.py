@@ -2,8 +2,6 @@ import numpy as np
 import cv2
 import math
 import matplotlib.path as mpltPath
-import xml.etree.cElementTree as ET
-import urllib
 from PIL import Image
 import sys
 print(sys.argv)
@@ -19,7 +17,6 @@ def slope(line=[]):
 		return math.degrees(math.atan(float(line[1]-line[3])/(line[0]-line[2]))) 
 	else:
 		return 90
-
 
 def DiffLines(lines=[[]]):
 	diffLines=[]
@@ -42,14 +39,11 @@ def DiffLines(lines=[[]]):
 			diffLines.append([[i[0][0],i[0][1],i[0][2],i[0][3]]])
 	return diffLines
 
-def findlines(image,mul):
-    
-	thresh=image
+def findlines(thresh,mul,x=10):
 	length = int(thresh.shape[0]/mul)
 	width = int(thresh.shape[1]/mul)
 	#print(thresh.shape)
 	#show(thresh,"thresh")
-	x=10
 	i=0
 	j=0
 	while (i+mul<thresh.shape[0]):
@@ -78,9 +72,8 @@ def findlines(image,mul):
 		i+=x
 	return thresh
 
-
 file = "full/1.png"
-print(file)
+# print(file)
 i = cv2.imread(file,0)
 show(i)
 orig=i.copy()
@@ -146,15 +139,4 @@ for cont in contours:
 	cv2.rectangle(orig,(x,y),(x+w,y+h),(0,0,255),2)
 	show(orig,"i")
 
-
 cv2.destroyAllWindows()
-
-# lines = cv2.HoughLinesP(thresh,10,np.pi/20,200)
-# print lines
-
-# diff=DiffLines(lines)
-# for line in diff:
-# 	cv2.line(img2,(line[0][0],line[0][1]),(line[0][2],line[0][3]),(0,0,255),2)
-
-# cv2.imshow("output",img2)
-# cv2.waitKey(0)
