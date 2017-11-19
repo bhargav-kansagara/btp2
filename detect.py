@@ -4,15 +4,37 @@ import math
 import sys
 np.set_printoptions(threshold=np.nan)
 
+def dist(x1,y1,x2,y2):
+	return ((x2-x1)**2 + (y2-y1)**2)**(1/2)
+
+def dist(box1,box2):
+	x1 = box1[0]+(box1[2]/2)
+	y1 = box1[1]+(box1[3]/2)
+	x2 = box2[0]+(box2[2]/2)
+	y2 = box2[1]+(box2[3]/2)
+	return ((x2-x1)**2 + (y2-y1)**2)**(1/2)
+
+def findConnection(components,wire):
+	c1=-1
+	c2=-1
+	m=10000
+	for i in range(len(components)):
+		d = dist(components[i],wire)
+		if(d < m):
+			m = d
+			c1=i
+	m=10000
+	for i in range(len(components)):
+		d = dist(components[i],wire)
+		if(d < m and i != c1):
+			m = d
+			c2=i
+	return (c1,c2)
+
+
 def show(image,name="image"):
 	cv2.imshow(name,image)
 	cv2.waitKey(0)
-
-def slope(line=[]):
-	if (line[0]!=line[2]):
-		return math.degrees(math.atan(float(line[1]-line[3])/(line[0]-line[2]))) 
-	else:
-		return 90
 
 def findlines(img,mul,x=10):
 	thresh = img.copy()
@@ -29,38 +51,48 @@ def findlines(img,mul,x=10):
 					temp1.append(thresh[i1][j1])
 				temp.append(temp1)
 			temp=np.array(temp)
+			
+			# if(i>=50):
+			# 	xyz = thresh.copy()
+			# 	cv2.rectangle(xyz,(j,i),(j+mul,i+mul),255,1)
+			# 	show(xyz,"sq")
+
 			_,contours,h1 = cv2.findContours(temp,1,2)
 			
 			if (len(contours)>1):
 				for i1 in range (i,i+mul):
 					for j1 in range (j,j+mul):
-						thresh[i1][j1]=0
+						# thresh[i1][j1]=0
 						comp[i1][j1]=200
 			j+=x
 		i+=x
 	return comp
 
 def getComponents(image, components):
+	count = 0
 	CompImages = []
 	for component in components:
+		count+=1
 		x,y,w,h = component
 		if(h<w):
 			img = np.zeros((h,w),np.uint8)
 			for X in range(0,h):
 				for Y in range(0,w):
 					img[X][Y] = image[y+X][x+Y]
-			show(img,"imgh")
+			# cv2.imwrite('5_component'+str(count)+'.png',img)
+			# show(img,"imgh")
 			CompImages.append(img)
 		else:
 			img = np.zeros((w,h),np.uint8)
 			for X in range(0,h):
 				for Y in range(0,w):
 					img[Y][X] = image[y+X][x+Y]
-			show(img,"imgv")
+			# cv2.imwrite('5_component'+str(count)+'.png',img)
+			# show(img,"imgv")
 			CompImages.append(img)
 	return CompImages
 
-file = "full/4.png"
+file = "full/8.png"
 # print(file)
 i = cv2.imread(file,0)
 show(i)
@@ -73,7 +105,7 @@ ret,thresh = cv2.threshold(img1,150,255,1)   ### skeletonization needs white on 
 ret,BW = cv2.threshold(img1,150,255,0)		# gives Black on white
 # show(thresh,"before")
 img=thresh.copy()
-show(thresh,"cj")
+# show(thresh,"cj")
 element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
 done = False
 skel = np.zeros(img.shape,np.uint8)
@@ -92,15 +124,17 @@ final=thresh.copy()
 sqsize = 20
 shift = 5
 comp=findlines(thresh,sqsize,shift)
-show(comp,"comp")
+# show(comp,"comp")
 components = []
 wires = []
+wires_img=i.copy()
 _,contours,h1 = cv2.findContours(comp,1 ,2)
+# print("components")
 for cont in contours:
 	(x,y,w,h)= cv2.boundingRect(cont)
-	if(w/h < 1.2 and w/h > 0.8):
+	if(w/h < 1.25 and w/h > 0.8):
 		continue
-	if(w<(sqsize*1.75) or h<(sqsize*1.75)):
+	if(w<(sqsize*1.5) or h<(sqsize*1.5)):
 		continue
 	# print(x,y,w,h)
 	x-=5
@@ -110,16 +144,27 @@ for cont in contours:
 	components.append((x,y,w,h))
 	cv2.rectangle(orig,(x,y),(x+w,y+h),(0,0,255),2)
 	cv2.rectangle(final,(x,y),(x+w,y+h),0,-1)
-	show(orig,"components")
-print(components)
+# cv2.imwrite('5_components.png',orig)
+show(orig,"components")
 
 CompImages = getComponents(BW, components)
 
+# print("wires")
 _,contours,h1 = cv2.findContours(final,1 ,2)
 for cont in contours:
 	(x,y,w,h)= cv2.boundingRect(cont)
+	if(w<(sqsize*1.75) and h<(sqsize*1.75)):
+		continue
 	# print(x,y,w,h)
-	cv2.rectangle(img2,(x,y),(x+w,y+h),(0,0,255),2)
-show(img2,"wires")
+	wires.append((x,y,w,h))
+	cv2.rectangle(wires_img,(x,y),(x+w,y+h),(0,0,255),2)
+# cv2.imwrite('5_wires.png',wires_img)
+show(wires_img,"wires")
+
+# connections list contains connection in tuple of 3, format:(index of comp1,index of wire, index of comp2) 
+connections = []
+for i in range(len(wires)):
+	c1,c2 = findConnection(components,wires[i]);
+	connections.append((c1,i,c2))
 
 cv2.destroyAllWindows()
