@@ -4,13 +4,6 @@ import math
 import sys
 np.set_printoptions(threshold=np.nan)
 
-class Connection:
-	def __init__(self,c1,w,c2):
-		self.conn = (c1,w,c2)
-		# self.comp1=c1
-		# self.wire=w
-		# self.comp2=c2
-
 def dist(x1,y1,x2,y2):
 	return ((x2-x1)**2 + (y2-y1)**2)**(1/2)
 
@@ -24,13 +17,13 @@ def dist(box1,box2):
 def findConnection(components,wire):
 	c1=-1
 	c2=-1
-	m=1000
+	m=10000
 	for i in range(len(components)):
 		d = dist(components[i],wire)
 		if(d < m):
 			m = d
 			c1=i
-	m=1000
+	m=10000
 	for i in range(len(components)):
 		d = dist(components[i],wire)
 		if(d < m and i != c1):
@@ -58,12 +51,18 @@ def findlines(img,mul,x=10):
 					temp1.append(thresh[i1][j1])
 				temp.append(temp1)
 			temp=np.array(temp)
+			
+			# if(i>=50):
+			# 	xyz = thresh.copy()
+			# 	cv2.rectangle(xyz,(j,i),(j+mul,i+mul),255,1)
+			# 	show(xyz,"sq")
+
 			_,contours,h1 = cv2.findContours(temp,1,2)
 			
 			if (len(contours)>1):
 				for i1 in range (i,i+mul):
 					for j1 in range (j,j+mul):
-						thresh[i1][j1]=0
+						# thresh[i1][j1]=0
 						comp[i1][j1]=200
 			j+=x
 		i+=x
@@ -80,7 +79,7 @@ def getComponents(image, components):
 			for X in range(0,h):
 				for Y in range(0,w):
 					img[X][Y] = image[y+X][x+Y]
-			# cv2.imwrite('4_component'+str(count)+'.png',img)
+			# cv2.imwrite('5_component'+str(count)+'.png',img)
 			# show(img,"imgh")
 			CompImages.append(img)
 		else:
@@ -88,12 +87,12 @@ def getComponents(image, components):
 			for X in range(0,h):
 				for Y in range(0,w):
 					img[Y][X] = image[y+X][x+Y]
-			# cv2.imwrite('4_component'+str(count)+'.png',img)
+			# cv2.imwrite('5_component'+str(count)+'.png',img)
 			# show(img,"imgv")
 			CompImages.append(img)
 	return CompImages
 
-file = "full/4.png"
+file = "full/8.png"
 # print(file)
 i = cv2.imread(file,0)
 show(i)
@@ -133,9 +132,9 @@ _,contours,h1 = cv2.findContours(comp,1 ,2)
 # print("components")
 for cont in contours:
 	(x,y,w,h)= cv2.boundingRect(cont)
-	if(w/h < 1.2 and w/h > 0.8):
+	if(w/h < 1.25 and w/h > 0.8):
 		continue
-	if(w<(sqsize*1.75) or h<(sqsize*1.75)):
+	if(w<(sqsize*1.5) or h<(sqsize*1.5)):
 		continue
 	# print(x,y,w,h)
 	x-=5
@@ -145,7 +144,7 @@ for cont in contours:
 	components.append((x,y,w,h))
 	cv2.rectangle(orig,(x,y),(x+w,y+h),(0,0,255),2)
 	cv2.rectangle(final,(x,y),(x+w,y+h),0,-1)
-# cv2.imwrite('4_components.png',orig)
+# cv2.imwrite('5_components.png',orig)
 show(orig,"components")
 
 CompImages = getComponents(BW, components)
@@ -154,10 +153,12 @@ CompImages = getComponents(BW, components)
 _,contours,h1 = cv2.findContours(final,1 ,2)
 for cont in contours:
 	(x,y,w,h)= cv2.boundingRect(cont)
+	if(w<(sqsize*1.75) and h<(sqsize*1.75)):
+		continue
 	# print(x,y,w,h)
 	wires.append((x,y,w,h))
 	cv2.rectangle(wires_img,(x,y),(x+w,y+h),(0,0,255),2)
-# cv2.imwrite('4_wires.png',wires_img)
+# cv2.imwrite('5_wires.png',wires_img)
 show(wires_img,"wires")
 
 # connections list contains connection in tuple of 3, format:(index of comp1,index of wire, index of comp2) 
